@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="viewport" id="viewport" content="width=device-width initial-scale=1 maximum-scale=1 user-scalable=no" />
+		
+		<title>Bernoulli</title>
+		
+		<link rel="stylesheet" type="text/css" href="style.css" />
+		<script type="text/javascript" src="canvas.js?version=432295920.194948"></script>
+		
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+		<form id="values">
+		  <table>
+		    <tr>
+		      <td>
+			<label for="nValue">
+			  Number of trials
+			</label>
+		      </td>
+		      <td>
+			<input type="text" name="nValue" id="nValue"
+		  value="20" />
+		      </td>
+		      <td>
+			<button type="button" value="incn">+5</button>
+		      </td>
+		      <td>
+			<button type="button" value="decn">-5</button>
+		      </td>
+		      <td>
+			<button type="button" value="incnn">+1</button>
+		      </td>
+		      <td>
+			<button type="button" value="decnn">-1</button>
+		      </td>
+		    </tr>
+		    <tr>
+		      <td>
+			<label for="pValue">
+			  p Value
+			</label>
+		      </td>
+		      <td>
+			<input type="text" name="pValue" id="pValue"
+		  value=".3" />
+		      </td>
+		      <td>
+			<button type="button" value="incp">+.1</button>
+		      </td>
+		      <td>
+			<button type="button" value="decp">-.1</button>
+		      </td>
+		      <td>
+			<button type="button" value="incpp">+.01</button>
+		      </td>
+		      <td>
+			<button type="button" value="decpp">-.01</button>
+		      </td>
+		    </tr>
+		    <tr>
+		      <td></td>
+		      <td>
+			<button type="button" value="set">Set Values</button>
+		      </td>
+		    </tr>
+		  </table>
+		</form>
+
+		<script type="text/javascript">
+setTimeout( init(), 500 );</script>							</body>
+</html>
