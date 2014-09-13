@@ -4,8 +4,9 @@ var nField;
 var pField;
 var ctx;
 var strokeWidth = 1;
-var r, g, b;
-var rc, gc, bc;
+var bgHue;
+var grHue;
+var txtHue;
 var p = 0.3;
 var n = 20;
 var lh = 30;
@@ -20,6 +21,7 @@ var gwidth;
 var gheight;
 var txtWidth;
 var bw;
+var inTouch;
 
 // Binomial functions
 function binom(n,k) {
@@ -36,10 +38,11 @@ function factorial(m,n) {
 
 function clear() {
     ctx.save();
-    ctx.fillStyle = "rgb("+r+","+g+","+b+")";
+    ctx.fillStyle = "hsl(" + bgHue + ",100%,25%)";
     ctx.fillRect(0, 0, fwidth, fheight);
     // also fill bg (not necessary but looks nice when resizing)
     document.querySelector("body").style.backgroundColor = ctx.fillStyle;
+    document.querySelector("form").style.color = "hsl(" + txtHue + ",100%,85%)";
     ctx.restore();
 }
 
@@ -49,7 +52,7 @@ function draw() {
     // clear background
     clear();
     ctx.save();
-    ctx.fillStyle = "rgb("+rc+","+gc+","+bc+")";
+    ctx.fillStyle = "hsl("+grHue+",100%,50%)";
     ctx.strokeStyle = "white";
     ctx.lineWidth = strokeWidth;
     ctx.translate(border,border);
@@ -60,16 +63,16 @@ function draw() {
 	x = bw*i + bwidth;
 	q = binom(n,i)*Math.pow(p,i) * Math.pow(1-p,n-i);
 	y = (gheight - theight)/ht * q;
-	ctx.fillStyle = "rgb("+rc+","+gc+","+bc+")";
+	ctx.fillStyle = "hsl("+grHue+",100%,50%)";
 	ctx.fillRect(x,gheight - y,bw,y);
 	ctx.strokeStyle = "black";
 	ctx.strokeRect(x,gheight-y,bw,y);
 	if (n < 50 || i%5 == 0) {
 	    tm = ctx.measureText(i);
-	    ctx.fillStyle = "rgb("+rt+","+gt+","+bt+")";
+	    ctx.fillStyle = "hsl("+txtHue+",100%,85%)";
 	    ctx.fillText(i,x+bw/2-tm.width/2,height-10);
 	}
-	ctx.strokeStyle = "rgb("+rt+","+gt+","+bt+")";
+	ctx.strokeStyle = "hsl("+txtHue+",100%,85%)";
 	ctx.beginPath();
 	ctx.moveTo(x,gheight);
 	ctx.lineTo(x,gheight+10);
@@ -78,7 +81,7 @@ function draw() {
 	ctx.lineTo(bwidth/2,gheight - y);
 	ctx.stroke();
 	lbl = q.toFixed(2).replace(/^0*/,'');
-	ctx.fillStyle = "rgb("+rt+","+gt+","+bt+")";
+	ctx.fillStyle = "hsl("+txtHue+",100%,85%)";
 	if (lbl != '.00')
 	    if (i < (n+1)*p) {
 		ctx.fillText(lbl,x+bw-txtWidth-5,gheight - y-5);
@@ -86,7 +89,7 @@ function draw() {
 		ctx.fillText(lbl,x+5,gheight - y-5);
 	    }
     }
-    ctx.strokeStyle = "rgb("+rt+","+gt+","+bt+")";
+    ctx.strokeStyle = "hsl("+txtHue+",100%,85%)";
     ctx.beginPath();
     x = bw*(n+1) + bwidth;
     ctx.moveTo(x,gheight);
@@ -98,6 +101,18 @@ function draw() {
     ctx.moveTo(bwidth,gheight);
     ctx.lineTo(bwidth,0);
     ctx.stroke();
+    var palette = ctx.createLinearGradient(0,0,bw,height);
+    palette.addColorStop(0,'hsl(0,100%,50%)');
+    palette.addColorStop(0.167,'hsl(60,100%,50%)');
+    palette.addColorStop(0.333,'hsl(120,100%,50%)');
+    palette.addColorStop(0.5,'hsl(180,100%,50%)');
+    palette.addColorStop(0.667,'hsl(240,100%,50%)');
+    palette.addColorStop(0.833,'hsl(300,100%,50%)');
+    palette.addColorStop(1,'hsl(360,100%,50%)');
+    ctx.beginPath();
+    ctx.rect(width+5,0,10,gheight);
+    ctx.fillStyle = palette;
+    ctx.fill();
     ctx.restore();
 }
 
@@ -158,11 +173,65 @@ function resize() {
     resetBernoulli();
 }
 
+function doMouseDown(e) {
+    var coords = getRelativeCoords(e);
+    ctx.rect(width+5,0,10,gheight);
+    if (coords.x > width+border+5 && coords.x < width+border+15 && coords.y > 0 && coords.y < gheight) {
+	inTouch = true;
+	setColour(coords.y/gheight*360);
+	draw();
+    }
+}
+
+function doMouseMove(e) {
+    if (inTouch) {
+	var coords = getRelativeCoords(e);
+	ctx.rect(width+5,0,10,gheight);
+	if (coords.y > 0 && coords.y < gheight) {
+	    setColour(coords.y/gheight*360);
+	    draw();
+	}
+    }
+}
+
+function doMouseUp(e) {
+    if (inTouch) {
+	var coords = getRelativeCoords(e);
+	ctx.rect(width+5,0,10,gheight);
+	if (coords.y > 0 && coords.y < gheight) {
+	    setColour(coords.y/gheight*360);
+	    draw();
+	}
+    }
+    inTouch = false;
+}
+
+function doMouseOut(e) {
+    inTouch = false;
+}
+
+
+function getRelativeCoords(event) {
+    if (event.offsetX !== undefined && event.offsetY !== undefined) { return { x: event.offsetX, y: event.offsetY }; }
+    return { x: event.layerX, y: event.layerY };
+}
+
+function setColour(h) {
+    bgHue = h;
+    grHue = h;
+    txtHue = bgHue + 180;
+    sessionStorage.setItem('bgHue',h);
+}
+
 window.addEventListener('resize', resize, false);
 // init
 function init() {
     // get context
     canvas=document.querySelector("#canvas");
+    canvas.addEventListener("mousedown",doMouseDown,false);
+    canvas.addEventListener("mouseup",doMouseUp,false);
+    canvas.addEventListener("mouseout",doMouseOut,false);
+    canvas.addEventListener("mousemove",doMouseMove,false);
     ctx = canvas.getContext("2d");
     ctx.font = "12px \"Trebuchet MS\"";
     var tm = ctx.measureText(".00");
@@ -181,14 +250,8 @@ function init() {
 		element.onclick = processForm;
     }
     // init some values
-    r = 40;
-    g = 40;
-    b = 127;
-    rc = 50;
-    gc = 200;
-    bc = 200;
-    rt = 200;
-    gt = 160;
-    bt = 0;
+    var h = sessionStorage.bgHue;
+    if (!h) h = 100;
+    setColour(h);
     resetBernoulli();
 }
