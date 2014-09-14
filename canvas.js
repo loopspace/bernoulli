@@ -22,6 +22,8 @@ var gheight;
 var txtWidth;
 var bw;
 var inTouch;
+var drawn;
+var colourList;
 
 // Binomial functions
 function binom(n,k) {
@@ -114,6 +116,9 @@ function draw() {
     ctx.fillStyle = palette;
     ctx.fill();
     ctx.restore();
+    if (!drawn)
+	colourList = ctx.getImageData(width+10+border,border,1,gheight);
+    drawn = true;
 }
 
 function resetBernoulli() {
@@ -178,7 +183,7 @@ function doMouseDown(e) {
     ctx.rect(width+5,0,10,gheight);
     if (coords.x > width+border+5 && coords.x < width+border+15 && coords.y > 0 && coords.y < gheight) {
 	inTouch = true;
-	setColour(coords.y/gheight*360);
+	setColour(rgbToHsl(colourList.data[4*coords.y],colourList.data[4*coords.y+1],colourList.data[4*coords.y+2])*360);
 	draw();
     }
 }
@@ -187,8 +192,8 @@ function doMouseMove(e) {
     if (inTouch) {
 	var coords = getRelativeCoords(e);
 	ctx.rect(width+5,0,10,gheight);
-	if (coords.y > 0 && coords.y < gheight) {
-	    setColour(coords.y/gheight*360);
+	if (coords.y >= 0 && coords.y < gheight) {
+	    setColour(rgbToHsl(colourList.data[4*coords.y],colourList.data[4*coords.y+1],colourList.data[4*coords.y+2])*360);
 	    draw();
 	}
     }
@@ -199,7 +204,7 @@ function doMouseUp(e) {
 	var coords = getRelativeCoords(e);
 	ctx.rect(width+5,0,10,gheight);
 	if (coords.y > 0 && coords.y < gheight) {
-	    setColour(coords.y/gheight*360);
+	    setColour(rgbToHsl(colourList.data[4*coords.y],colourList.data[4*coords.y+1],colourList.data[4*coords.y+2])*360);
 	    draw();
 	}
     }
@@ -254,4 +259,25 @@ function init() {
     if (!h) h = 100;
     setColour(h);
     resetBernoulli();
+}
+
+// From http://stackoverflow.com/a/9493060/315213
+function rgbToHsl(r, g, b){
+    r /= 255, g /= 255, b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h;
+
+    if(max == min){
+        h = 0; // achromatic
+    }else{
+        var d = max - min;
+        switch(max){
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return h;
 }
