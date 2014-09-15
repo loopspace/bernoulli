@@ -27,14 +27,20 @@ var colourList;
 
 // Binomial functions
 function binom(n,k) {
-    return factorial(1,n)/(factorial(1,k)*factorial(1,n-k));
+    if (k > n/2)
+	return binom(n,n-k);
+    return factorial(n,n-k+1)/factorial(k,1);
 }
 
 function factorial(m,n) {
-    if (n <= 0) {
-        return m;
+    return factorial_aux(1,m,n);
+}
+
+function factorial_aux(l,m,n) {
+    if (m < n) {
+        return l;
     } else {
-        return factorial(m*n,n-1);
+        return factorial_aux(l*m,m-1,n);
     }
 }
 
@@ -69,7 +75,7 @@ function draw() {
 	ctx.fillRect(x,gheight - y,bw,y);
 	ctx.strokeStyle = "black";
 	ctx.strokeRect(x,gheight-y,bw,y);
-	if (n < 50 || i%5 == 0) {
+	if (n < 50 || (n < 250 && i%5 == 0) || i%10 ==0) {
 	    tm = ctx.measureText(i);
 	    ctx.fillStyle = "hsl("+txtHue+",100%,85%)";
 	    ctx.fillText(i,x+bw/2-tm.width/2,height-10);
@@ -225,7 +231,8 @@ function setColour(h) {
     bgHue = h;
     grHue = h;
     txtHue = bgHue + 180;
-    sessionStorage.setItem('bgHue',h);
+    if (window.localStorage)
+	localStorage.setItem('bgHue',h);
 }
 
 window.addEventListener('resize', resize, false);
@@ -255,7 +262,9 @@ function init() {
 		element.onclick = processForm;
     }
     // init some values
-    var h = sessionStorage.bgHue;
+    var h;
+    if (window.localStorage) 
+	h = localStorage.bgHue;
     if (!h) h = 100;
     setColour(h);
     resetBernoulli();
