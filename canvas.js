@@ -1,5 +1,6 @@
 var canvas; 
 var form;
+var lField;
 var nField;
 var pField;
 var ctx;
@@ -7,8 +8,9 @@ var strokeWidth = 1;
 var bgHue;
 var grHue;
 var txtHue;
-var p = 0.3;
-var n = 20;
+var p = 1;
+var l = 0;
+var n = 30;
 var lh = 30;
 var border;
 var width;
@@ -64,12 +66,12 @@ function draw() {
     ctx.strokeStyle = "white";
     ctx.lineWidth = strokeWidth;
     ctx.translate(border,border);
-    var mode = Math.floor((n+1)*p);
-    var ht = binom(n,mode)*Math.pow(p,mode) * Math.pow(1-p,n-mode);
+    var mode = Math.floor(p);
+    var ht = Math.pow(p,mode) * Math.exp(-p) /factorial(mode,1);
     var tm,x,y,q,lbl;
-    for (var i=0;i<=n;i++) {
-	x = bw*i + bwidth;
-	q = binom(n,i)*Math.pow(p,i) * Math.pow(1-p,n-i);
+    for (var i=l;i<=n;i++) {
+	x = bw*(i-l) + bwidth;
+	q = Math.pow(p,i) * Math.exp(-p)/factorial(i,1);
 	y = (gheight - theight)/ht * q;
 	ctx.fillStyle = "hsl("+grHue+",100%,50%)";
 	ctx.fillRect(x,gheight - y,bw,y);
@@ -128,37 +130,56 @@ function draw() {
 }
 
 function resetBernoulli() {
+    l = parseInt(lField.value,10);
     n = parseInt(nField.value,10);
     p = parseFloat(pField.value);
     if (p == 1) p = .999999; // p = 1 causes an error
-    bw = gwidth/(n+1.5);
+    bw = gwidth/((n-l+1)+1.5);
     draw();
 }
 
 function processForm() {
     switch (this.value) {
+	case 'incl':
+	lField.value = Math.max(0,Math.min(n-1,l + 5));
+	break;
+	case 'decl':
+	lField.value = Math.max(0,Math.min(n-1,l - 5));
+	break;
+	case 'incll':
+	lField.value = Math.max(0,Math.min(n-1,l + 1));
+	break;
+	case 'decll':
+	lField.value = Math.max(0,Math.min(n-1,l - 1));
+	break;
 	case 'incn':
-	nField.value = n + 5;
+	nField.value = Math.max(l+1,n + 5);
 	break;
 	case 'decn':
-	nField.value = n - 5;
+	nField.value = Math.max(l+1,n - 5);
 	break;
 	case 'incnn':
-	nField.value = n + 1;
+	nField.value = Math.max(l+1,n + 1);
 	break;
 	case 'decnn':
-	nField.value = n - 1;
+	nField.value = Math.max(l+1,n - 1);
 	break;
 	case 'incp':
-	pField.value = Math.round(100*Math.min(1,p + .1))/100;
+	pField.value = Math.round(100*(p + 1))/100;
 	break;
 	case 'decp':
-	pField.value = Math.round(100*Math.max(0,p - .1))/100;
+	pField.value = Math.round(100*Math.max(0,p - 1))/100;
 	break;
 	case 'incpp':
-	pField.value = Math.round(100*Math.min(1,p + .01))/100;
+	pField.value = Math.round(100*(p + .1))/100;
 	break;
 	case 'decpp':
+	pField.value = Math.round(100*Math.max(0,p - .1))/100;
+	break;
+	case 'incppp':
+	pField.value = Math.round(100*(p + .01))/100;
+	break;
+	case 'decppp':
 	pField.value = Math.round(100*Math.max(0,p - .01))/100;
 	break;
     }
@@ -253,6 +274,7 @@ function init() {
     theight = 20;
     setSize();
 
+    lField = document.getElementById("lValue");
     nField = document.getElementById("nValue");
     pField = document.getElementById("pValue");
     var form = document.getElementById('values');
