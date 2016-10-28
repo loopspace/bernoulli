@@ -109,7 +109,7 @@ function draw() {
     ctx.moveTo(bwidth,gheight);
     ctx.lineTo(bwidth,0);
     ctx.stroke();
-    var palette = ctx.createLinearGradient(0,0,bw,height);
+    var palette = ctx.createLinearGradient(0,0,10,gheight);
     palette.addColorStop(0,'hsl(0,100%,50%)');
     palette.addColorStop(0.167,'hsl(60,100%,50%)');
     palette.addColorStop(0.333,'hsl(120,100%,50%)');
@@ -123,7 +123,7 @@ function draw() {
     ctx.fill();
     ctx.restore();
     if (!drawn)
-	colourList = ctx.getImageData(width+10+border,border,1,gheight);
+	colourList = ctx.getImageData(width+10+border,border,1,gheight+border);
     drawn = true;
 }
 
@@ -186,10 +186,10 @@ function resize() {
 
 function doMouseDown(e) {
     var coords = getRelativeCoords(e);
-    ctx.rect(width+5,0,10,gheight);
-    if (coords.x > width+border+5 && coords.x < width+border+15 && coords.y > 0 && coords.y < gheight) {
+    var yc = coords.y - border;
+    if (coords.x > width+border+5 && coords.x < width+border+15 && yc > 0 && yc < gheight) {
 	inTouch = true;
-	setColour(rgbToHsl(colourList.data[4*coords.y],colourList.data[4*coords.y+1],colourList.data[4*coords.y+2])*360);
+	setColour(rgbToHsl(colourList.data[4*yc],colourList.data[4*yc+1],colourList.data[4*yc+2])*360);
 	draw();
     }
 }
@@ -197,9 +197,9 @@ function doMouseDown(e) {
 function doMouseMove(e) {
     if (inTouch) {
 	var coords = getRelativeCoords(e);
-	ctx.rect(width+5,0,10,gheight);
-	if (coords.y >= 0 && coords.y < gheight) {
-	    setColour(rgbToHsl(colourList.data[4*coords.y],colourList.data[4*coords.y+1],colourList.data[4*coords.y+2])*360);
+	var yc = coords.y - border;
+	if (yc >= 0 && yc < gheight) {
+	    setColour(rgbToHsl(colourList.data[4*yc],colourList.data[4*yc+1],colourList.data[4*yc+2])*360);
 	    draw();
 	}
     }
@@ -208,9 +208,9 @@ function doMouseMove(e) {
 function doMouseUp(e) {
     if (inTouch) {
 	var coords = getRelativeCoords(e);
-	ctx.rect(width+5,0,10,gheight);
-	if (coords.y > 0 && coords.y < gheight) {
-	    setColour(rgbToHsl(colourList.data[4*coords.y],colourList.data[4*coords.y+1],colourList.data[4*coords.y+2])*360);
+	var yc = coords.y - border;
+	if (yc > 0 && yc < gheight) {
+	    setColour(rgbToHsl(colourList.data[4*yc],colourList.data[4*yc+1],colourList.data[4*yc+2])*360);
 	    draw();
 	}
     }
