@@ -4,9 +4,9 @@ var nField;
 var pField;
 var ctx;
 var strokeWidth = 1;
-var bgHue;
-var grHue;
-var txtHue;
+var bg;
+var fg;
+var txtColour;
 var p = 0.3;
 var n = 20;
 var lh = 30;
@@ -45,11 +45,11 @@ function factorial_aux(l,m,n) {
 
 function clear() {
     ctx.save();
-    ctx.fillStyle = "hsl(" + bgHue + ",100%,25%)";
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, fwidth, fheight);
     // also fill bg (not necessary but looks nice when resizing)
     document.querySelector("body").style.backgroundColor = ctx.fillStyle;
-    document.querySelector("form").style.color = "hsl(" + txtHue + ",100%,85%)";
+    document.querySelector("form").style.color = txtColour;
     ctx.restore();
 }
 
@@ -59,7 +59,7 @@ function draw() {
     // clear background
     clear();
     ctx.save();
-    ctx.fillStyle = "hsl("+grHue+",100%,50%)";
+    ctx.fillStyle = fg;
     ctx.strokeStyle = "white";
     ctx.lineWidth = strokeWidth;
     ctx.translate(border,border);
@@ -70,16 +70,16 @@ function draw() {
 	x = bw*i + bwidth;
 	q = binom(n,i)*Math.pow(p,i) * Math.pow(1-p,n-i);
 	y = (gheight - theight)/ht * q;
-	ctx.fillStyle = "hsl("+grHue+",100%,50%)";
+	ctx.fillStyle = fg;
 	ctx.fillRect(x,gheight - y,bw,y);
 	ctx.strokeStyle = "black";
 	ctx.strokeRect(x,gheight-y,bw,y);
 	if (n < 50 || (n < 250 && i%5 == 0) || i%10 ==0) {
 	    tm = ctx.measureText(i);
-	    ctx.fillStyle = "hsl("+txtHue+",100%,85%)";
+	    ctx.fillStyle = txtColour;
 	    ctx.fillText(i,x+bw/2-tm.width/2,height-10);
 	}
-	ctx.strokeStyle = "hsl("+txtHue+",100%,85%)";
+	ctx.strokeStyle = txtColour;
 	ctx.beginPath();
 	ctx.moveTo(x,gheight);
 	ctx.lineTo(x,gheight+10);
@@ -88,7 +88,7 @@ function draw() {
 	ctx.lineTo(bwidth/2,gheight - y);
 	ctx.stroke();
 	lbl = q.toFixed(2).replace(/^0*/,'');
-	ctx.fillStyle = "hsl("+txtHue+",100%,85%)";
+	ctx.fillStyle = txtColour;
 	if (lbl != '.00')
 	    if (i < (n+1)*p) {
 		ctx.fillText(lbl,x+bw-txtWidth-5,gheight - y-5);
@@ -96,7 +96,7 @@ function draw() {
 		ctx.fillText(lbl,x+5,gheight - y-5);
 	    }
     }
-    ctx.strokeStyle = "hsl("+txtHue+",100%,85%)";
+    ctx.strokeStyle = txtColour;
     ctx.beginPath();
     x = bw*(n+1) + bwidth;
     ctx.moveTo(x,gheight);
@@ -168,14 +168,6 @@ function resize() {
     resetBernoulli();
 }
 
-function setColour(h) {
-    bgHue = h;
-    grHue = h;
-    txtHue = bgHue + 180;
-    if (window.localStorage)
-	localStorage.setItem('bgHue',h);
-}
-
 window.addEventListener('resize', resize, false);
 // init
 function init() {
@@ -198,16 +190,44 @@ function init() {
 	if (element.type === "button")
 		element.onclick = processForm;
     }
-    document.getElementById("color").onchange = function(e) {
-	setColour(RGBtoHsl(e.target.value)*360);
+    document.getElementById("bgcolor").onchange = function(e) {
+	bg = e.target.value;
+	var l = RGBtoHsl(bg)[2];
+	if (l > .5) {
+	    txtColour = 'black';
+	} else {
+	    txtColour = 'white';
+	}
+
+	if (window.localStorage)
+	    localStorage.setItem('bg',bg);
+	draw();
+    }
+    document.getElementById("fgcolor").onchange = function(e) {
+	fg = e.target.value;
+	if (window.localStorage)
+	    localStorage.setItem('fg',fg);
 	draw();
     }
     // init some values
+    bg = 'white';
+    fg = 'purple';
+    bg = document.getElementById("bgcolor").value;
+    fg = document.getElementById("fgcolor").value;
     var h;
     if (window.localStorage) 
-	h = localStorage.bgHue;
-    if (!h) h = 100;
-    setColour(h);
+	h = localStorage.bg;
+    if (h) {bg = h};
+    var h;
+    if (window.localStorage) 
+	h = localStorage.fg;
+    if (h) {fg = h};
+    var l = RGBtoHsl(bg)[2];
+    if (l > .5) {
+	txtColour = 'black';
+    } else {
+	txtColour = 'white';
+    }
     resetBernoulli();
 }
 
@@ -215,12 +235,13 @@ function init() {
 function rgbToHsl(r, g, b){
     r /= 255, g /= 255, b /= 255;
     var max = Math.max(r, g, b), min = Math.min(r, g, b);
-    var h;
+    var h, s, l = (max + min) / 2;
 
     if(max == min){
-        h = 0; // achromatic
+        h = s = 0; // achromatic
     }else{
         var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch(max){
             case r: h = (g - b) / d + (g < b ? 6 : 0); break;
             case g: h = (b - r) / d + 2; break;
@@ -229,7 +250,7 @@ function rgbToHsl(r, g, b){
         h /= 6;
     }
 
-    return h;
+    return [h, s, l];
 }
 
 function RGBtoHsl(c) {
